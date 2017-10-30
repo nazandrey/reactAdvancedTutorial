@@ -4,7 +4,7 @@ import './index.css';
 
 function Square(props) {
   return (
-    <button className="square" onClick={props.onClick}>
+    <button className={"square " + (props.isWinner ? "square-winner" : "")} onClick={props.onClick}>
       {props.value}
     </button>
   );
@@ -15,6 +15,7 @@ class Board extends React.Component {
     return (
       <Square
         key={i}
+        isWinner={this.props.winnerSquares.indexOf(i) > -1}
         value={this.props.squares[i]}
         onClick={() => this.props.onClick(i)}
       />
@@ -66,7 +67,7 @@ class Game extends React.Component {
     const history = this.state.history.slice(0, this.state.stepNumber + 1);
     const current = history[this.state.stepNumber];
     const squares = current.squares.slice();
-    if (calculateWinner(squares) || squares[i]) {
+    if (calculateWinner(squares).length || squares[i]) {
       return;
     }
     squares[i] = this.state.xIsNext ? 'X' : 'O';
@@ -90,7 +91,7 @@ class Game extends React.Component {
   render() {
     const history = this.state.history;
     const current = history[this.state.stepNumber];
-    const winner = calculateWinner(current.squares);
+    const winnerSquares = calculateWinner(current.squares);
     let moves = history.map((step, move) => {
       const COLUMNS_IN_A_ROW = 3;
       let squareNum = step.squareNum;
@@ -108,8 +109,8 @@ class Game extends React.Component {
     moves = this.state.isAscSort ? moves : moves.reverse();
 
     let status;
-    if (winner) {
-      status = 'Winner: ' + winner;
+    if (winnerSquares.length) {
+      status = 'Winner: ' + current.squares[winnerSquares[0]];
     } else {
       status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
     }
@@ -119,6 +120,7 @@ class Game extends React.Component {
         <div className="game-board">
           <Board
             squares={current.squares}
+            winnerSquares={winnerSquares}
             onClick={(i) => this.handleClick(i)}
           />
 
@@ -147,10 +149,10 @@ function calculateWinner(squares) {
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
+      return [a, b, c];
     }
   }
-  return null;
+  return [];
 }
 
 // ========================================
